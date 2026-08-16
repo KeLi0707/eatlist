@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>知食分子通鉴</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#faf8f5; --card:#ffffff; --ink:#1f1c19; --muted:#8a8178;
+  --line:#e8e2da; --accent:#c2410c; --accent-soft:#fff1e9;
+  --green:#3f6212; --green-soft:#f0f6e4;
+  --grey-soft:#f1f5f9;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Segoe UI,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 70px}
+
+header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:22px;margin:0;letter-spacing:1px;font-weight:700}
+.stats{color:var(--muted);font-size:12.5px}
+.stats b{color:var(--ink);font-weight:600}
+
+.searchbar{position:relative;margin-bottom:10px}
+.searchbar input{width:100%;padding:12px 38px 12px 14px;font-size:16px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card);color:var(--ink);outline:none}
+.searchbar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.clearx{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;
+  color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;display:none}
+
+.trip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.trip .thead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.trip .ttitle{font-size:13px;font-weight:650}
+.trip .thint{font-size:11.5px;color:var(--muted)}
+.days{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.day{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 9px;font-size:12px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;min-width:44px;text-align:center;line-height:1.25}
+.day small{display:block;font-size:10px;color:var(--muted)}
+.day.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.day.on small{color:rgba(255,255,255,.75)}
+.toggle{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer}
+.toggle input{accent-color:var(--accent);width:15px;height:15px}
+
+.filters{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.frow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.flabel{font-size:11.5px;color:var(--muted);min-width:32px;flex-shrink:0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+  padding:6px 11px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip .n{opacity:.55;font-size:11px;margin-left:3px}
+select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;
+  padding:6px 8px;font-size:12.5px;cursor:pointer;max-width:190px}
+.reset{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:12px;
+  cursor:pointer;text-decoration:underline;padding:4px}
+
+.ghead{font-size:12.5px;font-weight:650;color:var(--muted);margin:18px 0 8px;
+  display:flex;align-items:center;gap:8px}
+.ghead::after{content:"";flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:11px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;
+  display:flex;flex-direction:column;gap:7px}
+.card.shut{opacity:.55}
+.chead{display:flex;align-items:flex-start;gap:8px}
+.cname{font-size:15.5px;font-weight:650;line-height:1.3;flex:1}
+.pri{font-size:12px;color:#d97706;letter-spacing:-1px;flex-shrink:0;padding-top:3px}
+.badges{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.pill{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600}
+.pill.open{background:var(--green-soft);color:var(--green)}
+.pill.shut{background:#fee2e2;color:#991b1b}
+.pill.book{background:#ede9fe;color:#5b21b6}
+.pill.togo{background:#fdf4ff;color:#86198f}
+.pill.kind{background:var(--accent-soft);color:var(--accent)}
+.pill.visited{background:var(--green-soft);color:var(--green)}
+.pill.keep{background:#fef3c7;color:#92400e}
+.loc{font-size:13px;color:#57534e;display:flex;gap:6px;align-items:baseline}
+.loc a{color:#57534e;text-decoration:none;border-bottom:1px dotted #bbb;letter-spacing:.2px}
+.line{font-size:12px;color:var(--muted);display:flex;gap:6px}
+.line b{color:var(--ink);font-weight:600}
+.note{font-size:12.5px;color:#57534e;background:#faf8f5;border-radius:8px;padding:7px 9px;
+  border-left:2px solid var(--line)}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11.5px;background:#f5f2ee;color:#6b625a;border:0;border-radius:6px;padding:4px 8px;cursor:pointer}
+.src{font-size:11.5px;color:var(--muted);margin-top:auto;padding-top:3px}
+.src a{color:var(--muted)}
+
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.howto{margin-top:26px;background:var(--card);border:1px dashed var(--line);border-radius:12px;
+  padding:13px 15px;font-size:12.5px;color:#57534e}
+.howto b{color:var(--ink)}
+@media(hover:hover){.chip:hover{border-color:var(--accent)}.tag:hover{background:var(--accent-soft);color:var(--accent)}
+  .loc a:hover{color:var(--accent);border-color:var(--accent)}}
+@media(max-width:560px){
+  .wrap{padding:14px 12px 60px} h1{font-size:20px}
+  .flabel{min-width:auto;width:100%;margin-bottom:-2px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  select{max-width:none;flex:1 1 40%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>知食分子通鉴</h1>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="searchbar">
+  <input id="q" type="search" placeholder="搜店名 / 地区 / 种类，例如 sourdough、brunch、JB" autocomplete="off">
+  <button class="clearx" id="clearx">&times;</button>
+</div>
+
+<div class="trip">
+  <div class="thead">
+    <span class="ttitle">哪天去</span>
+    <span class="thint" id="dayHint"></span>
+    <label class="toggle"><input type="checkbox" id="onlyOpen">只看开门的</label>
+  </div>
+  <div class="days" id="days"></div>
+</div>
+
+<div class="filters">
+  <div class="frow"><span class="flabel">地区</span><span id="fCity"></span></div>
+  <div class="frow"><span class="flabel">种类</span><span id="fKind"></span></div>
+  <div class="frow"><span class="flabel">方式</span><span id="fType"></span></div>
+  <div class="frow"><span class="flabel">更多</span>
+    <select id="fArea"></select>
+    <select id="fStatus">
+      <option value="all">全部状态</option>
+      <option value="wish">还没去</option>
+      <option value="done">已去过</option>
+      <option value="keep">只看回购</option>
+    </select>
+    <select id="sort">
+      <option value="added">最近添加</option>
+      <option value="area">按区域聚合（行程用）</option>
+      <option value="pri">优先级</option>
+      <option value="name">按名字</option>
+    </select>
+    <button class="reset" id="reset">清空</button>
+  </div>
+</div>
+
+<div id="out"></div>
+<div class="empty" id="empty" style="display:none">没有符合的 — 换个关键词或换一天试试</div>
+
+<div class="howto">
+  <b>加新店：</b>在 Claude 里说「加一家 XX」，或直接把 IG / 小红书的截图丢给我，我会查地址、营业时间、归地区、打标签再更新。<br>
+  也可以说「把 XX 标成已去过，给 4 分」「删掉 XX」「周六过关去 JB，有什么开门的」。
+</div>
+
+</div>
+
+<script>
+// ══ 数据 ═══════════════════════════════════════════════
+// type   : dine 实体店 / togo 自取·邮寄
+// loc    : 国家 / 地区 / 最近地铁（home baker 不填，标签行的「自取/邮寄」已说明）
+// kind   : 店的种类，显示在店名下方那一行
+// week   : [日,一,二,三,四,五,六] 营业时间，null = 当天休息；预定制的店不填 week
+// booking: true 表示需要预定
+const PLACES = [
+  {id:"littlebun", name:"Little Bun Cafe", type:"dine",
+   city:"新山 JB", area:"Eco Botanic", loc:"MY / JB / Eco Botanic",
+   addr:"G-08, Eco Nest Apartment, Jalan Eko Botanic 3/5, Persiaran Eko Botani, 79100 Johor",
+   kind:["Cafe","Brunch","Sourdough"],
+   week:["09:30–18:00",null,"09:30–18:00","09:30–18:00","09:30–18:00","09:30–18:00","09:30–18:00"],
+   contact:"+60 16-763 2623",
+   tags:["酸面包","蒸布里欧修","steamed brioche","日韩风","蛋糕","意面","咖啡"],
+   pri:2, status:"wish",
+   note:"100% sourdough 的日韩风咖啡馆，招牌是蒸布里欧修（原味 / 班兰 / 核桃葡萄干）。也有 big breakfast、意面和蛋糕。",
+   added:"2026-08-16"},
+
+  {id:"gracekitchen", name:"Grace Kitchen Corner", type:"togo",
+   city:"新山 JB", area:"JB", homebaker:true,
+   kind:["Sourdough","Home Baker"],
+   booking:true, bookNote:"WhatsApp 预定（号码待补）",
+   tags:["酸面包","预定制"],
+   pri:2, status:"wish", note:"还没订过。", added:"2026-08-16"},
+
+  {id:"dalena", name:"Dalena's Kitchen", type:"togo",
+   city:"槟城 Penang", ships:["新山 JB"], area:"槟城", homebaker:true,
+   kind:["Sourdough","Home Baker"],
+   booking:true, orderDays:[2,3], bookNote:"周二 / 周三 群里出菜单 → 预定 → 周一发货",
+   tags:["酸面包","邮寄","预定制","WhatsApp 群"],
+   pri:2, status:"wish",
+   note:"还没订过。菜单每周更新，看到群里发就要及时预定，周一统一寄出。", added:"2026-08-16"},
+
+  {id:"reen", name:"Reen", type:"togo",
+   city:"新山 JB", area:"Skudai", homebaker:true,
+   addr:"Taman Mutiara Mas, Skudai, Johor",   // 完整门牌号不放进这份文件（页面是公开的），去微信聊天记录找
+   kind:["Sourdough","Home Baker"],
+   booking:true, bookNote:"需提前预定（提前期待确认）",
+   tags:["酸面包","口味可定制","回购"],
+   pri:3, status:"done", rating:5, keep:true,
+   note:"订过一次，非常好，要回购。口味可以自己点，不是固定款。", added:"2026-08-16"},
+
+  {id:"foc", name:"FOC Restaurant", type:"dine",
+   city:"新加坡", area:"Keong Saik", loc:"SG / Keong Saik / Maxwell",
+   addr:"32 Keong Saik Rd, Singapore 089139",
+   kind:["西班牙餐","Tapas"],
+   week:["18:00–23:30",null,"12:00–23:30","12:00–23:30","12:00–23:30","12:00–00:00","12:00–00:00"],
+   booking:true, bookNote:"建议订位；paella 要备餐 30 分钟，订位时先讲",
+   tags:["paella","米其林推荐","聚餐","正餐"],
+   pri:2, status:"wish",
+   note:"米其林星厨 Nandu Jubany 的加泰罗尼亚菜，2025 年从 Hongkong St 搬到 Keong Saik。姐妹店 FOC by the Beach 在圣淘沙。",
+   url:"https://focrestaurant.com/", added:"2026-08-16"},
+
+  {id:"bakeanthem", name:"Bake Anthem", type:"dine",
+   city:"新加坡", area:"Binjai Park", loc:"SG / Binjai Park / King Albert Park",
+   addr:"29 Binjai Park, Singapore 589831",
+   kind:["Sourdough","面包店"],
+   week:["09:00–17:30","09:00–17:30","09:00–17:30","09:00–17:30",null,"09:00–17:30","09:00–17:30"],
+   tags:["酸面包","artisan"], pri:3, status:"wish",
+   note:"主打「不那么酸」的 sourdough，原本在 Sin Ming 的组屋小店，现已搬到 Binjai Park。",
+   url:"https://bakeanthem.com/", added:"2026-08-16"},
+
+  {id:"dearborn", name:"Dearborn", type:"dine",
+   city:"新加坡", area:"New Bahru", loc:"SG / New Bahru / Fort Canning",
+   addr:"46 Kim Yam Rd, #03-04, Singapore 239351",
+   kind:["Cafe","Brunch","Sourdough"],
+   week:["09:00–15:00","09:00–15:00",null,"09:00–15:00","09:00–15:00","09:00–15:00","09:00–15:00"],
+   tags:["酸面包","granola","早餐","madeleine"],
+   pri:3, status:"wish",
+   note:"granola 起家的品牌开的 bakery café，现烤 sourdough + 早午餐。最后点单 14:30，只接受 walk-in 不能订位。",
+   url:"https://dearborn.sg/", added:"2026-08-16"},
+
+  {id:"lesamis", name:"Les Amis — La Boutique", type:"togo",
+   city:"新加坡", area:"Shaw Centre", loc:"SG / Shaw Centre / Orchard",
+   addr:"1 Scotts Rd, #01-16 Shaw Centre, Singapore 228208",
+   kind:["Sourdough","法式面包"],
+   week:["15:00–18:00","15:00–18:00","15:00–18:00","15:00–18:00","15:00–18:00","15:00–18:00","15:00–18:00"],
+   booking:true, bookNote:"建议先在官网 La Boutique 订单表预定再去取",
+   tags:["酸面包","法式","米其林三星"], pri:2, status:"wish",
+   note:"三日发酵，用 2010 与 2013 年养的两款酵头。不用吃正餐也能买到。",
+   url:"https://www.lesamis.com.sg/la-boutique", added:"2026-08-16"}
+];
+
+// ══ 逻辑 ═══════════════════════════════════════════════
+const TYPE_LABEL={dine:"实体店",togo:"自取/邮寄"};
+const DAY_CN=["日","一","二","三","四","五","六"];
+const KEY="eatlist.filters.v4";
+const TODAY=new Date().getDay();
+
+let S={q:"",city:new Set(),type:new Set(),kind:new Set(),area:"all",status:"all",
+       sort:"added",day:"any",onlyOpen:false};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"{}");
+  Object.assign(S,s,{city:new Set(s.city||[]),type:new Set(s.type||[]),kind:new Set(s.kind||[])});}catch(e){}
+
+const save=()=>localStorage.setItem(KEY,JSON.stringify({...S,city:[...S.city],type:[...S.type],kind:[...S.kind]}));
+const el=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const activeDay=()=>S.day==="any"?TODAY:S.day;
+const hoursOn=(p,d)=>p.week?p.week[d]:null;
+const isOpenOn=(p,d)=>p.week?!!hoursOn(p,d):null;   // null = 预定制，不适用
+
+const haystack=p=>[p.name,p.city,p.area,p.loc,p.addr,p.note,p.contact,p.bookNote,TYPE_LABEL[p.type],
+  p.keep?"回购 常买 已验证":"",p.booking?"预定":"",p.homebaker?"home baker 家庭烘焙":"",
+  ...(p.ships||[]),...(p.kind||[]),...(p.tags||[])].join(" ").toLowerCase();
+
+function match(p){
+  if(S.q && !haystack(p).includes(S.q.toLowerCase())) return false;
+  if(S.city.size && !S.city.has(p.city) && !(p.ships||[]).some(c=>S.city.has(c))) return false;
+  if(S.type.size && !S.type.has(p.type)) return false;
+  if(S.kind.size && !(p.kind||[]).some(k=>S.kind.has(k))) return false;
+  if(S.area!=="all" && p.area!==S.area) return false;
+  if(S.status==="wish" && p.status==="done") return false;
+  if(S.status==="done" && p.status!=="done") return false;
+  if(S.status==="keep" && !p.keep) return false;
+  if(S.onlyOpen && isOpenOn(p,activeDay())===false) return false;
+  return true;
+}
+function sortFn(a,b){
+  if(S.sort==="pri") return (b.pri||0)-(a.pri||0)||a.name.localeCompare(b.name);
+  if(S.sort==="name") return a.name.localeCompare(b.name,"zh");
+  return (b.added||"").localeCompare(a.added||"")||a.name.localeCompare(b.name);
+}
+const countBy=fn=>{const m={};PLACES.forEach(p=>{const v=fn(p);(Array.isArray(v)?v:[v]).filter(Boolean)
+  .forEach(x=>m[x]=(m[x]||0)+1)});return m;};
+const chipHtml=(map,k,set,order)=>(order||Object.keys(map).sort((a,b)=>map[b]-map[a])).map(v=>
+  `<button class="chip ${set.has(v)?"on":""}" data-k="${k}" data-v="${esc(v)}">${esc(TYPE_LABEL[v]||v)}<span class="n">${map[v]}</span></button>`).join(" ");
+
+function renderDays(){
+  const opts=[{v:"any",l:"不限",s:""}];
+  for(let i=0;i<7;i++){const d=(TODAY+i)%7;
+    opts.push({v:d,l:i===0?"今天":i===1?"明天":"周"+DAY_CN[d],s:i<2?"周"+DAY_CN[d]:""});}
+  el("days").innerHTML=opts.map(o=>
+    `<button class="day ${String(S.day)===String(o.v)?"on":""}" data-day="${o.v}">${o.l}<small>${o.s||"&nbsp;"}</small></button>`).join("");
+  el("onlyOpen").checked=S.onlyOpen;
+  const d=activeDay();
+  const openN=PLACES.filter(p=>isOpenOn(p,d)===true).length;
+  const shutN=PLACES.filter(p=>isOpenOn(p,d)===false).length;
+  el("dayHint").innerHTML=`周${DAY_CN[d]}：${openN} 家开门${shutN?` · ${shutN} 家休息`:""}`;
+}
+function renderChips(){
+  el("fCity").innerHTML=chipHtml(countBy(p=>p.city),"city",S.city);
+  el("fKind").innerHTML=chipHtml(countBy(p=>p.kind),"kind",S.kind);
+  el("fType").innerHTML=chipHtml(countBy(p=>p.type),"type",S.type,
+    ["dine","togo"].filter(t=>PLACES.some(p=>p.type===t)));
+  const pool=S.city.size?PLACES.filter(p=>S.city.has(p.city)||(p.ships||[]).some(c=>S.city.has(c))):PLACES;
+  const areas=[...new Set(pool.map(p=>p.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh"));
+  if(S.area!=="all"&&!areas.includes(S.area)) S.area="all";
+  el("fArea").innerHTML=`<option value="all">全部区域</option>`+
+    areas.map(a=>`<option value="${esc(a)}" ${S.area===a?"selected":""}>${esc(a)} (${pool.filter(p=>p.area===a).length})</option>`).join("");
+  el("fStatus").value=S.status; el("sort").value=S.sort; el("q").value=S.q;
+  el("clearx").style.display=S.q?"block":"none";
+}
+
+function card(p){
+  const d=activeDay(), open=isOpenOn(p,d), hrs=hoursOn(p,d);
+  const stars=p.pri?"★".repeat(p.pri):"";
+
+  // 第二行：开门状态 → 运营方式 → 店的种类
+  const badges=[
+    open===true?`<span class="pill open">开门</span>`:"",
+    open===false?`<span class="pill shut">休息</span>`:"",
+    p.booking?`<span class="pill book">预定</span>`:"",
+    p.type==="togo"?`<span class="pill togo">自取/邮寄</span>`:"",
+    ...(p.kind||[]).map(k=>`<span class="pill kind">${esc(k)}</span>`),
+    p.status==="done"?`<span class="pill visited">已吃过 ${p.rating?p.rating+"/5":""}</span>`:"",
+    p.keep?`<span class="pill keep">回购</span>`:""
+  ].filter(Boolean).join("");
+
+  // 第三行：国家/地区/地铁。home baker 不写地点（标签行的「自取/邮寄」已说明）
+  let locHtml="";
+  if(p.loc){ const mapQ=encodeURIComponent(p.name.replace(/ —.*/,"")+" "+(p.addr||""));
+    locHtml=`<div class="loc">📍<a href="https://www.google.com/maps/search/?api=1&query=${mapQ}" target="_blank" rel="noopener">${esc(p.loc)}</a></div>`; }
+
+  let hoursHtml="";
+  if(!p.week){ hoursHtml=p.bookNote?`<div class="line">🗓<span>${esc(p.bookNote)}</span></div>`:""; }
+  else if(open){ hoursHtml=`<div class="line">🕘<span>周${DAY_CN[d]} <b>${esc(hrs)}</b></span></div>`; }
+  else { const nx=[1,2,3,4,5,6].map(i=>(d+i)%7).find(x=>hoursOn(p,x));
+    hoursHtml=`<div class="line">🕘<span>周${DAY_CN[d]}休息${nx!==undefined?` · 下次周${DAY_CN[nx]} ${esc(hoursOn(p,nx))}`:""}</span></div>`; }
+  const bookHtml=(p.week&&p.bookNote)?`<div class="line">🗓<span>${esc(p.bookNote)}</span></div>`:"";
+
+  return `<div class="card ${open===false?"shut":""}">
+    <div class="chead"><div class="cname">${esc(p.name)}</div><div class="pri">${stars}</div></div>
+    <div class="badges">${badges}</div>
+    ${locHtml}${hoursHtml}${bookHtml}
+    ${p.contact?`<div class="line">📞<span>${esc(p.contact)}</span></div>`:""}
+    ${p.note?`<div class="note">${esc(p.note)}</div>`:""}
+    ${(p.tags||[]).length?`<div class="tags">${p.tags.map(t=>`<button class="tag" data-tag="${esc(t)}">${esc(t)}</button>`).join("")}</div>`:""}
+    <div class="src">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">官网/链接</a> · `:""}加于 ${esc(p.added||"")}</div>
+  </div>`;
+}
+
+function render(){
+  const list=PLACES.filter(match);
+  let html="";
+  if(S.sort==="area"){
+    const bk=list.filter(p=>p.booking&&!p.week);
+    const rest=list.filter(p=>!(p.booking&&!p.week));
+    const groups={};
+    rest.forEach(p=>{const k=(p.city||"")+" · "+(p.area||"");(groups[k]=groups[k]||[]).push(p)});
+    Object.keys(groups).sort((a,b)=>a.localeCompare(b,"zh")).forEach(k=>{
+      html+=`<div class="ghead">${esc(k)} <span style="font-weight:400">(${groups[k].length})</span></div>
+             <div class="grid">${groups[k].sort((a,b)=>(b.pri||0)-(a.pri||0)).map(card).join("")}</div>`;});
+    if(bk.length) html+=`<div class="ghead">要提前预定 — 别等到当天 <span style="font-weight:400">(${bk.length})</span></div>
+             <div class="grid">${bk.map(card).join("")}</div>`;
+  }else{
+    html=`<div class="grid">${list.sort(sortFn).map(card).join("")}</div>`;
+  }
+  el("out").innerHTML=list.length?html:"";
+  el("empty").style.display=list.length?"none":"block";
+  const done=PLACES.filter(p=>p.status==="done").length;
+  el("stats").innerHTML=`收录 <b>${PLACES.length}</b> 家 · 未访 <b>${PLACES.length-done}</b> · 已访 <b>${done}</b>`+
+    (list.length!==PLACES.length?` · 显示 <b>${list.length}</b>`:"");
+  save();
+}
+const all=()=>{renderDays();renderChips();render();};
+
+document.addEventListener("click",e=>{
+  const d=e.target.closest(".day");
+  if(d){S.day=d.dataset.day==="any"?"any":+d.dataset.day; all(); return;}
+  const c=e.target.closest(".chip");
+  if(c){const set={city:S.city,type:S.type,kind:S.kind}[c.dataset.k];const v=c.dataset.v;
+    set.has(v)?set.delete(v):set.add(v); renderChips(); render(); return;}
+  const t=e.target.closest(".tag");
+  if(t){S.q=t.dataset.tag; renderChips(); render(); window.scrollTo({top:0,behavior:"smooth"});}
+});
+el("onlyOpen").addEventListener("change",e=>{S.onlyOpen=e.target.checked; render();});
+el("q").addEventListener("input",e=>{S.q=e.target.value; el("clearx").style.display=S.q?"block":"none"; render();});
+el("clearx").addEventListener("click",()=>{S.q=""; renderChips(); render();});
+el("fArea").addEventListener("change",e=>{S.area=e.target.value; render();});
+el("fStatus").addEventListener("change",e=>{S.status=e.target.value; render();});
+el("sort").addEventListener("change",e=>{S.sort=e.target.value; render();});
+el("reset").addEventListener("click",()=>{S={q:"",city:new Set(),type:new Set(),kind:new Set(),
+  area:"all",status:"all",sort:"added",day:"any",onlyOpen:false}; all();});
+
+all();
+</script>
+</body>
+</html>
