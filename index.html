@@ -76,7 +76,6 @@ select{border:1px solid var(--line);background:var(--card);color:var(--ink);bord
 .pill.togo{background:#fdf4ff;color:#86198f}
 .pill.kind{background:var(--accent-soft);color:var(--accent)}
 .pill.visited{background:var(--green-soft);color:var(--green)}
-.pill.keep{background:#fef3c7;color:#92400e}
 .loc{font-size:13px;color:#57534e;display:flex;gap:6px;align-items:baseline}
 .loc a{color:#57534e;text-decoration:none;border-bottom:1px dotted #bbb;letter-spacing:.2px}
 .line{font-size:12px;color:var(--muted);display:flex;gap:6px}
@@ -134,7 +133,6 @@ select{border:1px solid var(--line);background:var(--card);color:var(--ink);bord
       <option value="all">全部状态</option>
       <option value="wish">还没去</option>
       <option value="done">已去过</option>
-      <option value="keep">只看回购</option>
     </select>
     <select id="sort">
       <option value="added">最近添加</option>
@@ -195,8 +193,8 @@ const PLACES = [
    addr:"Taman Mutiara Mas, Skudai, Johor",   // 完整门牌号不放进这份文件（页面是公开的），去微信聊天记录找
    kind:["Sourdough","Home Baker"],
    booking:true, bookNote:"需提前预定（提前期待确认）",
-   tags:["酸面包","口味可定制","回购"],
-   pri:3, status:"done", rating:5, keep:true,
+   tags:["酸面包","口味可定制"],
+   pri:3, status:"done", rating:5,
    note:"订过一次，非常好，要回购。口味可以自己点，不是固定款。", added:"2026-08-16"},
 
   {id:"foc", name:"FOC Restaurant", type:"dine",
@@ -205,8 +203,8 @@ const PLACES = [
    kind:["西班牙餐","Tapas"],
    week:["18:00–23:30",null,"12:00–23:30","12:00–23:30","12:00–23:30","12:00–00:00","12:00–00:00"],
    booking:true, bookNote:"建议订位；paella 要备餐 30 分钟，订位时先讲",
-   tags:["paella","米其林推荐","聚餐","正餐","回购"],
-   pri:3, status:"done", keep:true,
+   tags:["paella","米其林推荐","聚餐","正餐"],
+   pri:2, status:"done",
    note:"去过，很好吃。米其林星厨 Nandu Jubany 的加泰罗尼亚菜，2025 年从 Hongkong St 搬到 Keong Saik。姐妹店 FOC by the Beach 在圣淘沙。",
    url:"https://focrestaurant.com/", added:"2026-08-16"},
 
@@ -259,7 +257,7 @@ const hoursOn=(p,d)=>p.week?p.week[d]:null;
 const isOpenOn=(p,d)=>p.week?!!hoursOn(p,d):null;   // null = 预定制，不适用
 
 const haystack=p=>[p.name,p.city,p.area,p.loc,p.addr,p.note,p.contact,p.bookNote,TYPE_LABEL[p.type],
-  p.keep?"回购 常买 已验证":"",p.booking?"预定":"",p.homebaker?"home baker 家庭烘焙":"",
+  p.booking?"预定":"",p.homebaker?"home baker 家庭烘焙":"",
   ...(p.ships||[]),...(p.kind||[]),...(p.tags||[])].join(" ").toLowerCase();
 
 function match(p){
@@ -270,7 +268,6 @@ function match(p){
   if(S.area!=="all" && p.area!==S.area) return false;
   if(S.status==="wish" && p.status==="done") return false;
   if(S.status==="done" && p.status!=="done") return false;
-  if(S.status==="keep" && !p.keep) return false;
   if(S.onlyOpen && isOpenOn(p,activeDay())===false) return false;
   return true;
 }
@@ -321,8 +318,7 @@ function card(p){
     p.booking?`<span class="pill book">预定</span>`:"",
     p.type==="togo"?`<span class="pill togo">自取/邮寄</span>`:"",
     ...(p.kind||[]).map(k=>`<span class="pill kind">${esc(k)}</span>`),
-    p.status==="done"?`<span class="pill visited">已吃过 ${p.rating?p.rating+"/5":""}</span>`:"",
-    p.keep?`<span class="pill keep">回购</span>`:""
+    p.status==="done"?`<span class="pill visited">已吃过 ${p.rating?p.rating+"/5":""}</span>`:""
   ].filter(Boolean).join("");
 
   // 第三行：国家/地区/地铁。home baker 不写地点（标签行的「自取/邮寄」已说明）
