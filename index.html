@@ -74,6 +74,7 @@ select{border:1px solid var(--line);background:var(--card);color:var(--ink);bord
 .pill.shut{background:#fee2e2;color:#991b1b}
 .pill.book{background:#ede9fe;color:#5b21b6}
 .pill.togo{background:#fdf4ff;color:#86198f}
+.pill.mail{background:#eff6ff;color:#1d4ed8}
 .pill.kind{background:var(--accent-soft);color:var(--accent)}
 .pill.visited{background:var(--green-soft);color:var(--green)}
 .loc{font-size:13px;color:#57534e;display:flex;gap:6px;align-items:baseline}
@@ -156,13 +157,13 @@ select{border:1px solid var(--line);background:var(--card);color:var(--ink);bord
 
 <script>
 // ══ 数据 ═══════════════════════════════════════════════
-// type   : dine 实体店 / togo 自取·邮寄
+// type   : dine 实体店 / pickup 自取 / mail 邮寄 / both 两者都行
 // loc    : 国家 / 地区 / 最近地铁（home baker 不填，标签行的「自取/邮寄」已说明）
 // kind   : 店的种类，显示在店名下方那一行
 // week   : [日,一,二,三,四,五,六] 营业时间，null = 当天休息；预定制的店不填 week
 // booking: true 表示需要预定
 const PLACES = [
-  {id:"tommylebaker", name:"Tommy Le Baker", type:"togo",
+  {id:"tommylebaker", name:"Tommy Le Baker", type:"pickup",
    city:"吉隆坡 KL", area:"Kampung Attap",
    loc:"MY / KL / Kampung Attap（近 Pasar Seni）",
    addr:"82 Jalan Rotan, Kampung Attap, 50460 Kuala Lumpur（The Zhongshan Building 中庭）",
@@ -175,7 +176,7 @@ const PLACES = [
    note:"法国师傅的手工面包店，开在 Zhongshan Building 中庭。除了面包还有 sourdough 三明治、开面 tartine、法棍三明治、每日例汤和甜点。线上下单只做 KL 本地配送，不邮寄 —— 要人在 KL 才吃得到。另一家分店在 Bukit Tunku（Asrama Block），8:00–21:00，公共假期休。",
    url:"https://tommylebaker.oddle.me/en_MY", added:"2026-08-22"},
 
-  {id:"36degree", name:"36 Degree Bakehouse", type:"togo",
+  {id:"36degree", name:"36 Degree Bakehouse", type:"both",
    city:"吉隆坡 KL", ships:["新山 JB"], area:"TRX",
    loc:"MY / KL / TRX（Tun Razak Exchange 站）",
    addr:"Level Concourse, SEIBU, The Exchange TRX, Persiaran TRX Timur, Imbi, 55100 Kuala Lumpur",
@@ -200,14 +201,14 @@ const PLACES = [
    note:"100% sourdough 的日韩风咖啡馆，招牌是蒸布里欧修（原味 / 班兰 / 核桃葡萄干）。也有 big breakfast、意面和蛋糕。",
    added:"2026-08-16"},
 
-  {id:"gracekitchen", name:"Grace Kitchen Corner", type:"togo",
+  {id:"gracekitchen", name:"Grace Kitchen Corner", type:"pickup",
    city:"新山 JB", area:"JB", homebaker:true,
    kind:["Sourdough","Home Baker"],
    booking:true, bookNote:"WhatsApp 预定（号码待补）",
    tags:["酸面包","预定制"],
    pri:2, status:"wish", note:"还没订过。", added:"2026-08-16"},
 
-  {id:"dalena", name:"Dalena's Kitchen", type:"togo",
+  {id:"dalena", name:"Dalena's Kitchen", type:"mail",
    city:"槟城 Penang", ships:["新山 JB"], area:"槟城", homebaker:true,
    kind:["Sourdough","Home Baker"],
    booking:true, orderDays:[2,3], bookNote:"周二 / 周三 群里出菜单 → 预定 → 周一发货",
@@ -215,7 +216,7 @@ const PLACES = [
    pri:2, status:"wish",
    note:"还没订过。菜单每周更新，看到群里发就要及时预定，周一统一寄出。", added:"2026-08-16"},
 
-  {id:"reen", name:"Reen", type:"togo",
+  {id:"reen", name:"Reen", type:"pickup",
    city:"新山 JB", area:"Skudai", homebaker:true,
    addr:"Taman Mutiara Mas, Skudai, Johor",   // 完整门牌号不放进这份文件（页面是公开的），去微信聊天记录找
    kind:["Sourdough","Home Baker"],
@@ -254,7 +255,7 @@ const PLACES = [
    note:"granola 起家的品牌开的 bakery café，现烤 sourdough + 早午餐。最后点单 14:30，只接受 walk-in 不能订位。",
    url:"https://dearborn.sg/", added:"2026-08-16"},
 
-  {id:"lesamis", name:"Les Amis — La Boutique", type:"togo",
+  {id:"lesamis", name:"Les Amis — La Boutique", type:"pickup",
    city:"新加坡", area:"Shaw Centre", loc:"SG / Shaw Centre / Orchard",
    addr:"1 Scotts Rd, #01-16 Shaw Centre, Singapore 228208",
    kind:["Sourdough","法式面包"],
@@ -266,7 +267,11 @@ const PLACES = [
 ];
 
 // ══ 逻辑 ═══════════════════════════════════════════════
-const TYPE_LABEL={dine:"实体店",togo:"自取/邮寄"};
+const TYPE_LABEL={dine:"实体店",pickup:"自取",mail:"邮寄"};
+// type 可以是 dine / pickup / mail / both（both = 既能自取也能邮寄）
+const canPick=p=>p.type==="pickup"||p.type==="both";
+const canMail=p=>p.type==="mail"||p.type==="both";
+const hasCap=(p,t)=>t==="dine"?p.type==="dine":t==="pickup"?canPick(p):canMail(p);
 const DAY_CN=["日","一","二","三","四","五","六"];
 const KEY="eatlist.filters.v4";
 const TODAY=new Date().getDay();
@@ -283,14 +288,15 @@ const activeDay=()=>S.day==="any"?TODAY:S.day;
 const hoursOn=(p,d)=>p.week?p.week[d]:null;
 const isOpenOn=(p,d)=>p.week?!!hoursOn(p,d):null;   // null = 预定制，不适用
 
-const haystack=p=>[p.name,p.city,p.area,p.loc,p.addr,p.note,p.contact,p.bookNote,TYPE_LABEL[p.type],
+const haystack=p=>[p.name,p.city,p.area,p.loc,p.addr,p.note,p.contact,p.bookNote,
+  canPick(p)?"自取":"",canMail(p)?"邮寄":"",p.type==="dine"?"实体店":"",
   p.booking?"预定":"",p.homebaker?"home baker 家庭烘焙":"",
   ...(p.ships||[]),...(p.kind||[]),...(p.tags||[])].join(" ").toLowerCase();
 
 function match(p){
   if(S.q && !haystack(p).includes(S.q.toLowerCase())) return false;
   if(S.city.size && !S.city.has(p.city) && !(p.ships||[]).some(c=>S.city.has(c))) return false;
-  if(S.type.size && !S.type.has(p.type)) return false;
+  if(S.type.size && ![...S.type].some(t=>hasCap(p,t))) return false;
   if(S.kind.size && !(p.kind||[]).some(k=>S.kind.has(k))) return false;
   if(S.area!=="all" && p.area!==S.area) return false;
   if(S.status==="wish" && p.status==="done") return false;
@@ -323,8 +329,9 @@ function renderDays(){
 function renderChips(){
   el("fCity").innerHTML=chipHtml(countBy(p=>p.city),"city",S.city);
   el("fKind").innerHTML=chipHtml(countBy(p=>p.kind),"kind",S.kind);
-  el("fType").innerHTML=chipHtml(countBy(p=>p.type),"type",S.type,
-    ["dine","togo"].filter(t=>PLACES.some(p=>p.type===t)));
+  const capCount={}; ["dine","pickup","mail"].forEach(t=>{
+    const n=PLACES.filter(p=>hasCap(p,t)).length; if(n) capCount[t]=n;});
+  el("fType").innerHTML=chipHtml(capCount,"type",S.type,Object.keys(capCount));
   const pool=S.city.size?PLACES.filter(p=>S.city.has(p.city)||(p.ships||[]).some(c=>S.city.has(c))):PLACES;
   const areas=[...new Set(pool.map(p=>p.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh"));
   if(S.area!=="all"&&!areas.includes(S.area)) S.area="all";
@@ -343,7 +350,8 @@ function card(p){
     open===true?`<span class="pill open">开门</span>`:"",
     open===false?`<span class="pill shut">休息</span>`:"",
     p.booking?`<span class="pill book">预定</span>`:"",
-    p.type==="togo"?`<span class="pill togo">自取/邮寄</span>`:"",
+    canPick(p)?`<span class="pill togo">自取</span>`:"",
+    canMail(p)?`<span class="pill mail">邮寄</span>`:"",
     ...(p.kind||[]).map(k=>`<span class="pill kind">${esc(k)}</span>`),
     p.status==="done"?`<span class="pill visited">已吃过 ${p.rating?p.rating+"/5":""}</span>`:""
   ].filter(Boolean).join("");
