@@ -162,12 +162,13 @@ select{border:1px solid var(--line);background:var(--card);color:var(--ink);bord
 // week   : [日,一,二,三,四,五,六] 营业时间，null = 当天休息；预定制的店不填 week
 // booking: true 表示需要预定
 const PLACES = [
-  {id:"tommylebaker", name:"Tommy Le Baker", type:"dine",
+  {id:"tommylebaker", name:"Tommy Le Baker", type:"togo",
    city:"吉隆坡 KL", area:"Kampung Attap",
    loc:"MY / KL / Kampung Attap（近 Pasar Seni）",
    addr:"82 Jalan Rotan, Kampung Attap, 50460 Kuala Lumpur（The Zhongshan Building 中庭）",
    kind:["Sourdough","法式面包","Cafe"],
    week:["08:00–17:00","08:00–17:00","08:00–17:00","08:00–17:00","08:00–17:00","08:00–17:00","08:00–17:00"],
+   booking:true, bookNote:"官网（Oddle）线上预定，到店自取 8:00–17:00",
    contact:"+60 10-266 4878",
    tags:["酸种面包","三明治","tartine","法棍","法式","Zhongshan Building","甜点","汤"],
    pri:2, status:"wish",
